@@ -17,6 +17,11 @@ package mods;
     method ActionValue #(Bit#(33)) fulladder_result (Bit#(32)a, Bit#(32)b, Bit#(1)c);
   endinterface:Ifc_Fulladder
 
+  //16x16 bit multiplier
+  interface Ifc_Mul;
+    method ActionValue #(Bit#(32)) mul_result (Bit#(16)a, Bit#(16)b);
+  endinterface:Ifc_Mul;
+
   ///////////////////////////////// module definitions ////////////////////////////////////////
   //one bit fulladder
   module mkFadder(Ifc_Fadder);
@@ -51,7 +56,6 @@ package mods;
     endmethod
   endmodule:mk4Fadder
 
-  (*synthesize*)
   //32 bit adder
   module mkFulladder(Ifc_Fulladder);
     Ifc_4Fadder u1 <- mk4Fadder;
@@ -86,5 +90,22 @@ package mods;
       return ress;
     endmethod
   endmodule:mkFulladder
+
+  //16x16 bit multiplier.
+  module mkMul(Ifc_Mul);
+  //Booths multiplier.
+  Ifc_Fulladder u1 <- mkFulladder;
+  method ActionValue #(Bit#(32)) mul_result (Bit#(16)a, Bit#(16)b);
+    Bit#(16) neg_a = 16'b0;
+    for(integer i=0;i<32;i++)begin
+      if(a[fromInteger(i)] == 1'b1)
+        neg_a[fromInteger(i)] = 1'b0;
+      else
+        neg_a[fromInteger(i)] = 1'b1;
+    end
+    let twoc_a <- u1.fulladder_result(neg_a,32'b0,1);
+
+  endmethod
+  endmodule:mkMul
 
 endpackage:mods
