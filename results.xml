@@ -1,6 +1,0 @@
-<testsuites name="results">
-  <testsuite name="all" package="all">
-    <property name="random_seed" value="1728822550" />
-    <testcase name="test_fadder" classname="test_fadder" file="/Users/zoro/puneeth/cad/CS6230_project1/work/mac_verif/test_fadder.py" lineno="9" time="0.0010929107666015625" sim_time_ns="55000.001" ratio_time="50324329.01271902" />
-  </testsuite>
-</testsuites>

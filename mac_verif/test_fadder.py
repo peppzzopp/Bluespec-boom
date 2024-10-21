@@ -43,10 +43,10 @@ async def test_fadder(dut):
     await RisingEdge(dut.CLK)
     dut._log.info( f'output{int(dut.fulladder_result.value)}')
 
-    dut.fulladder_result_a.value = 16
-    dut.fulladder_result_b.value = 16
+    dut.fulladder_result_a.value = 125
+    dut.fulladder_result_b.value = 17
     dut.fulladder_result_c.value = 1
-    dut._log.info('16 + 16 + 1')
+    dut._log.info('125 + 17 + 1')
     await RisingEdge(dut.CLK)
     dut._log.info( f'output{int(dut.fulladder_result.value)}')
 

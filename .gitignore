@@ -1,1 +1,6 @@
-./mac_verif/__pycache__
+./mac_verif/__pycache__/
+./intermediate/
+./dump.vcd
+./results.xml
+./sim_build/
+./verilog/

@@ -17,11 +17,6 @@ package mods;
     method ActionValue #(Bit#(33)) fulladder_result (Bit#(32)a, Bit#(32)b, Bit#(1)c);
   endinterface:Ifc_Fulladder
 
-  //multiplier
-  interface Ifc_Mul;
-    method ActionValue #(Bit#(32)) mul_result (Bit#(16)a, Bit#(16)b);
-  endinterface:Ifc_Mul;
-
   ///////////////////////////////// module definitions ////////////////////////////////////////
   //one bit fulladder
   module mkFadder(Ifc_Fadder);
@@ -56,6 +51,7 @@ package mods;
     endmethod
   endmodule:mk4Fadder
 
+  (*synthesize*)
   //32 bit adder
   module mkFulladder(Ifc_Fulladder);
     Ifc_4Fadder u1 <- mk4Fadder;
@@ -91,8 +87,4 @@ package mods;
     endmethod
   endmodule:mkFulladder
 
-  //multiplier
-  module mkMul(Ifc_Mul);
-    
-  endmodule:mkMul
 endpackage:mods
