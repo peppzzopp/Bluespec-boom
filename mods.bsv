@@ -94,18 +94,37 @@ package mods;
   //16x16 bit multiplier.
   module mkMul(Ifc_Mul);
   //Booths multiplier.
-  Ifc_Fulladder u1 <- mkFulladder;
-  method ActionValue #(Bit#(32)) mul_result (Bit#(16)a, Bit#(16)b);
-    Bit#(16) neg_a = 16'b0;
-    for(integer i=0;i<32;i++)begin
-      if(a[fromInteger(i)] == 1'b1)
-        neg_a[fromInteger(i)] = 1'b0;
-      else
-        neg_a[fromInteger(i)] = 1'b1;
-    end
-    let twoc_a <- u1.fulladder_result(neg_a,32'b0,1);
+   Ifc_Fulladder u1 <- mkFulladder;
+   method ActionValue #(Bit#(32)) mul_result (Bit#(16)a, Bit#(16)b);
+     Bit#(16) neg_a = 16'b0;
+     Bit#(32) accum = 32'b0;
+     Bit#(17) mplier = zeroExtend(b) <<1;
+     Bit#(1)  prev_bit = 1'b0;
+     Bit#(2) booth_bits;
+     for(integer i=0;i<16;i++)begin
+       if(a[fromInteger(i)] == 1'b1)
+         neg_a[fromInteger(i)] = 1'b0;
+       else
+         neg_a[fromInteger(i)] = 1'b1;
+     end
+     let twoc_a <- u1.fulladder_result(neg_a,32'b0,1);
+     for (integer i=0;i<16;i++)begin
+       booth_bits= mplier[1:0];
 
-  endmethod
+       if (booth_bits == 2'b01) begin
+          let temp_accum <- u1.fulladder_result(accum, zeroExtend(a) << fromInteger(i), 0);
+          accum = temp_accum;
+       end
+       else if (booth_bits == 2'b10) begin
+         let temp_accum <- u1.fulladder_result(accum, twoc_a << fromInteger(i), 0);
+         accum = temp_accum;
+       end
+
+       mplier = mplier >> 1;
+     end
+
+     return accum;
+   endmethod
   endmodule:mkMul
 
 endpackage:mods
