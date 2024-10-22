@@ -45,9 +45,9 @@ async def test_fadder(dut):
     await RisingEdge(dut.CLK)
     dut._log.info( f'output{int(dut.mul_result.value)}')
 
-    dut.mul_result_a.value = 65535
-    dut.mul_result_b.value = 65535
-    dut._log.info('highest edge case - both = 65535')
+    dut.mul_result_a.value = 32767 
+    dut.mul_result_b.value = 32767 
+    dut._log.info('highest edge case - both = 32767')
     await RisingEdge(dut.CLK)
     dut._log.info( f'output{int(dut.mul_result.value)}')
 
