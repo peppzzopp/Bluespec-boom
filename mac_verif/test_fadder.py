@@ -8,45 +8,46 @@ from cocotb.triggers import RisingEdge
 
 @cocotb.test()
 async def test_fadder(dut):
-    dut.EN_fulladder_result.value = 0
+    dut.EN_mul_result.value = 0
     clock = Clock(dut.CLK, 10, units="us")
     cocotb.start_soon(clock.start(start_high=False))
     dut.RST_N.value = 0
     await RisingEdge(dut.CLK)
     dut.RST_N.value = 1
-    dut.EN_fulladder_result.value = 1
-    dut.fulladder_result_a.value = 0
-    dut.fulladder_result_b.value = 0
-    dut.fulladder_result_c.value = 0
+    dut.EN_mul_result.value = 1
+    dut.mul_result_a.value = 0
+    dut.mul_result_b.value = 0
     dut._log.info('all zeros')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.fulladder_result.value)}')
+    dut._log.info( f'output{int(dut.mul_result.value)}')
     
-    dut.fulladder_result_a.value = 0
-    dut.fulladder_result_b.value = 0
-    dut.fulladder_result_c.value = 1
+    dut.mul_result_a.value = 1
+    dut.mul_result_b.value = 0
     dut._log.info('one one')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.fulladder_result.value)}')
+    dut._log.info( f'output{int(dut.mul_result.value)}')
     
-    dut.fulladder_result_a.value = 1
-    dut.fulladder_result_b.value = 0
-    dut.fulladder_result_c.value = 1
+    dut.mul_result_a.value = 1
+    dut.mul_result_b.value = 1
     dut._log.info('two ones')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.fulladder_result.value)}')
+    dut._log.info( f'output{int(dut.mul_result.value)}')
 
-    dut.fulladder_result_a.value = 1
-    dut.fulladder_result_b.value = 1
-    dut.fulladder_result_c.value = 1
-    dut._log.info('all ones')
+    dut.mul_result_a.value = 5
+    dut.mul_result_b.value = 8
+    dut._log.info('5 * 8')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.fulladder_result.value)}')
+    dut._log.info( f'output{int(dut.mul_result.value)}')
+    
+    dut.mul_result_a.value = -5
+    dut.mul_result_b.value = 8
+    dut._log.info('- 5 * 8')
+    await RisingEdge(dut.CLK)
+    dut._log.info( f'output{int(dut.mul_result.value)}')
 
-    dut.fulladder_result_a.value = 125
-    dut.fulladder_result_b.value = 17
-    dut.fulladder_result_c.value = 1
-    dut._log.info('125 + 17 + 1')
+    dut.mul_result_a.value = 65535
+    dut.mul_result_b.value = 65535
+    dut._log.info('highest edge case - both = 65535')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.fulladder_result.value)}')
+    dut._log.info( f'output{int(dut.mul_result.value)}')
 
