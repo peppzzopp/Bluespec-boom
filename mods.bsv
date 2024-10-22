@@ -114,12 +114,28 @@ package mods;
        booth_bits= mplier[1:0];
 
        if (booth_bits == 2'b01) begin
-          let temp_accum <- u1.fulladder_result(accum, zeroExtend(a) << fromInteger(i), 0);
+         Bit#(32) sign_extended_a = 32'h00000000;
+         if(a[15] == 1'b1) begin
+           Bit#(32) temp = 32'hFFFF0000;
+           sign_extended_a = temp | zeroExtend(a); 
+         end
+         if(a[15] == 1'b0) begin
+           Bit#(32) temp = 32'h00000000;
+           sign_extended_a = temp | zeroExtend(a);
+         end
+          let temp_accum <- u1.fulladder_result(accum, sign_extended_a << fromInteger(i), 0);
           accum = temp_accum[31:0];
        end
        else if (booth_bits == 2'b10) begin
-         Bit#(32) temp = 32'hFFFF0000;
-         Bit#(32) sign_extended_twoc_a = temp | zeroExtend(twoc_a); 
+         Bit#(32) sign_extended_twoc_a = 32'h00000000;
+         if(twoc_a[15] == 1'b1) begin
+           Bit#(32) temp = 32'hFFFF0000;
+           sign_extended_twoc_a = temp | zeroExtend(twoc_a); 
+         end
+         if(twoc_a[15] == 1'b0) begin
+           Bit#(32) temp = 32'h00000000;
+           sign_extended_twoc_a = temp | zeroExtend(twoc_a);
+         end
          let temp_accum <- u1.fulladder_result(accum, sign_extended_twoc_a << fromInteger(i), 0);
          accum = temp_accum[31:0];
        end
