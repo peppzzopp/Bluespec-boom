@@ -59,6 +59,13 @@ async def test_fadder(dut):
     
     dut.intmac_result_a.value = -5
     dut.intmac_result_b.value = -8
+    dut.intmac_result_c.value = -80
+    dut._log.info('a = -5, b = -8, c = -80')
+    await RisingEdge(dut.CLK)
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
+    
+    dut.intmac_result_a.value = -5
+    dut.intmac_result_b.value = -8
     dut.intmac_result_c.value = -40
     dut._log.info('a = -5, b = -8, c = -40')
     await RisingEdge(dut.CLK)
