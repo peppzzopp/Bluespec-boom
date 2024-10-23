@@ -8,58 +8,59 @@ from cocotb.triggers import RisingEdge
 
 @cocotb.test()
 async def test_fadder(dut):
-    dut.EN_mul_result.value = 0
+    dut.EN_intmac_result.value = 0
     clock = Clock(dut.CLK, 10, units="us")
     cocotb.start_soon(clock.start(start_high=False))
     dut.RST_N.value = 0
     await RisingEdge(dut.CLK)
     dut.RST_N.value = 1
-    dut.EN_mul_result.value = 1
-    dut.mul_result_a.value = 0
-    dut.mul_result_b.value = 0
+    dut.EN_intmac_result.value = 1
+    dut.intmac_result_a.value = 0
+    dut.intmac_result_b.value = 0
+    dut.intmac_result_c.value = 0
     dut._log.info('all zeros')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
     
-    dut.mul_result_a.value = 1
-    dut.mul_result_b.value = 0
-    dut._log.info('one one')
+    dut.intmac_result_a.value = 1
+    dut.intmac_result_b.value = 0
+    dut.intmac_result_c.value = 5
+    dut._log.info('a = 1, b = 0, c = 5')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
     
-    dut.mul_result_a.value = 1
-    dut.mul_result_b.value = 1
-    dut._log.info('two ones')
+    dut.intmac_result_a.value = 1
+    dut.intmac_result_b.value = 1
+    dut.intmac_result_c.value = 5
+    dut._log.info('a = 1, b = 1, c = 5')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
 
-    dut.mul_result_a.value = 5
-    dut.mul_result_b.value = 8
-    dut._log.info('5 * 8')
+    dut.intmac_result_a.value = 5
+    dut.intmac_result_b.value = 8
+    dut.intmac_result_c.value = 40
+    dut._log.info('a = 5, b = 8, c = 40')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
     
-    dut.mul_result_a.value = 5
-    dut.mul_result_b.value = -8
-    dut._log.info('5 * -8')
+    dut.intmac_result_a.value = 5
+    dut.intmac_result_b.value = -8
+    dut.intmac_result_c.value = 40
+    dut._log.info('a = 5, b = -8, c = 40')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
 
-    dut.mul_result_a.value = -5
-    dut.mul_result_b.value = 8
-    dut._log.info('-5 * 8')
+    dut.intmac_result_a.value = -5
+    dut.intmac_result_b.value = 8
+    dut.intmac_result_c.value = 80
+    dut._log.info('a = -5, b = 8, c = 80')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
     
-    dut.mul_result_a.value = -5
-    dut.mul_result_b.value = -8
-    dut._log.info('-5 * -8')
+    dut.intmac_result_a.value = -5
+    dut.intmac_result_b.value = -8
+    dut.intmac_result_c.value = -40
+    dut._log.info('a = -5, b = -8, c = -40')
     await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
-    
-    dut.mul_result_a.value = 32767 
-    dut.mul_result_b.value = 32767 
-    dut._log.info('highest edge case - both = 32767')
-    await RisingEdge(dut.CLK)
-    dut._log.info( f'output{int(dut.mul_result.value)}')
+    dut._log.info( f'output{int(dut.intmac_result.value)}')
 

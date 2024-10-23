@@ -21,6 +21,11 @@ package mods;
   interface Ifc_Mul;
     method ActionValue #(Bit#(32)) mul_result (Bit#(16)a, Bit#(16)b);
   endinterface:Ifc_Mul
+  
+  //integer mac module.
+  interface Ifc_Intmac;
+    method ActionValue #(Bit#(32)) intmac_result (Bit#(8)a, Bit#(8)b, Bit#(32)c);
+  endinterface:Ifc_Intmac
 
   ///////////////////////////////// module definitions ////////////////////////////////////////
   //one bit fulladder
@@ -86,12 +91,12 @@ package mods;
       ress[23:20] = interim6[3:0];
       ress[27:24] = interim7[3:0];
       ress[31:28] = interim8[3:0];
+      ress[32] = interim8[4];
 
       return ress;
     endmethod
   endmodule:mkFulladder
   
-  (*synthesize*)
   //16x16 bit multiplier.
   module mkMul(Ifc_Mul);
   //Booths multiplier.
@@ -146,5 +151,35 @@ package mods;
      return accum;
    endmethod
   endmodule:mkMul
+
+  //Mac module.
+  (*synthesize*)
+  module mkIntmac(Ifc_Intmac);
+    Ifc_Fulladder adder <- mkFulladder;
+    Ifc_Mul multiplier <- mkMul;
+    method ActionValue #(Bit#(32)) intmac_result (Bit#(8)a, Bit#(8)b, Bit#(32)c);
+      Bit#(16) sign_extended_a = 16'h0000;
+         if(a[7] == 1'b1) begin
+           Bit#(16) temp = 16'hFF00;
+           sign_extended_a = temp | zeroExtend(a); 
+         end
+         if(a[7] == 1'b0) begin
+           Bit#(16) temp = 16'h0000;
+           sign_extended_a = temp | zeroExtend(a);
+         end
+      Bit#(16) sign_extended_b = 16'h0000;
+         if(b[7] == 1'b1) begin
+           Bit#(16) temp = 16'hFF00;
+           sign_extended_b = temp | zeroExtend(b); 
+         end
+         if(b[7] == 1'b0) begin
+           Bit#(16) temp = 16'h0000;
+           sign_extended_b = temp | zeroExtend(b);
+         end 
+      let mult_out <- multiplier.mul_result(sign_extended_a,sign_extended_b);
+      let add_out <- adder.fulladder_result(mult_out,c,0);
+      return add_out[31:0];
+    endmethod:intmac_result
+  endmodule:mkIntmac
 
 endpackage:mods
