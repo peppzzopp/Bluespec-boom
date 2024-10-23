@@ -27,7 +27,12 @@ package mods;
     method ActionValue #(Bit#(32)) intmac_result (Bit#(8)a, Bit#(8)b, Bit#(32)c);
   endinterface:Ifc_Intmac
 
-  ///////////////////////////////// module definitions ////////////////////////////////////////
+   //floating point mac module.
+  interface Ifc_Fpmac;
+    method ActionValue #(Bit#(32)) fpmac_result (Bit#(16)a, Bit#(16)b, Bit#(32)c);
+  endinterface:Ifc_Fpmac
+
+ ///////////////////////////////// module definitions ////////////////////////////////////////
   //one bit fulladder
   module mkFadder(Ifc_Fadder);
     method ActionValue #(Bit#(2)) fadder_result (Bit#(1)a ,Bit#(1)b, Bit#(1)c);
@@ -182,4 +187,14 @@ package mods;
     endmethod:intmac_result
   endmodule:mkIntmac
 
+  module mkFpmac(Ifc_Fpmac);
+    method ActionValue #(Bit#(32)) fpmac_result (Bit#(16)a, Bit#(16)b, Bit#(32)c);
+      Bit#(1) sign_a = a[15];
+      Bit#(1) sign_b = b[15];
+      Bit#(8) exponent_a = a[14:7];
+      Bit#(8) exponent_b = b[14:7];
+      Bit#(7) mantissa_a = a[6:0];
+      Bit#(7) mantissa_b = b[6:0];
+    endmethod:fpmac_result
+  endmodule:mkFpmac
 endpackage:mods
