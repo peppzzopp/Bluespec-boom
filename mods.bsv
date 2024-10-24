@@ -143,6 +143,7 @@ package mods;
   //Floating point mac module.
   module mkFpmac(Ifc_Fpmac);
     Ifc_8Fadder u1 <- mk8Fadder;
+    Ifc_Intmac u2 <- mkIntmac;
     method ActionValue #(Bit#(32)) fpmac_result (Bit#(16)a, Bit#(16)b, Bit#(32)c);
       //extraction of individual fields.
       Bit#(1) sign_a = a[15];
@@ -173,13 +174,12 @@ package mods;
       end
       else begin
         mantissa_prod = zeroExtend(mantissa_prod) << 1;
-        exp_prod = exp_prod;
       end
       // Final adjustment for mantissa and exponent to fit fp32
       Bit#(32) result;
-      result[31] = sign_prod; // Set sign bit
-      result[30:23] = exp_prod; // Set exponent bits
-      result[22:0] = mantissa_norm_prod[22:0]; // Set mantissa bits    
+      fp32_product[31] = sign_prod;         // Set sign bit
+      fp32_product[30:23] = exp_prod;       // Set exponent bits
+      fp32_product[22:0] = mantissa_norm_prod[22:0]; // Set mantissa bits    
       Bit#(32) add_out <- u2.intmac_result(fp32_product, c, 0);
       return add_out[31:0];
       //checking exponents.
