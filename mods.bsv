@@ -167,15 +167,21 @@ package mods;
       //normalization and translation of mantissa.
       Bit#(24) mantissa_norm_prod = 24'b0;
       if(mantissa_prod[15] == 1'b1)begin
-        mantissa_prod = zeroExtend(mantissa_prod) << 14;
+        mantissa_prod = zeroExtend(mantissa_prod) << 1;
         let temp_exp_prod <- u1.f8adder_result(exp_prod,8'b0,1);
         exp_prod = temp_exp_prod[7:0];
       end
       else begin
-        mantissa_prod = zeroExtend(mantissa_prod) << 15;
+        mantissa_prod = zeroExtend(mantissa_prod) << 1;
         exp_prod = exp_prod;
       end
-
+      // Final adjustment for mantissa and exponent to fit fp32
+      Bit#(32) result;
+      result[31] = sign_prod; // Set sign bit
+      result[30:23] = exp_prod; // Set exponent bits
+      result[22:0] = mantissa_norm_prod[22:0]; // Set mantissa bits    
+      Bit#(32) add_out <- u2.intmac_result(fp32_product, c, 0);
+      return add_out[31:0];
       //checking exponents.
       //if(exponent_a > exponent_b)begin
       //  Bit#(8) neg_exp_b = 0;
