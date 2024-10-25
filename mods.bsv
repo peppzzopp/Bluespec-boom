@@ -27,6 +27,19 @@ package mods;
     method ActionValue #(Bit#(32)) fpmac_result (Bit#(16)a, Bit#(16)b, Bit#(32)c);
   endinterface:Ifc_Fpmac
 
+   // Interface for the MAC Module
+  interface MACModule;
+    method Action set_B(Bit#(16) b);     
+    method Action set_C(Bit#(32) c);    
+    method Action set_S1_or_S2(Bool s);  
+    method Bit#(32) get_MAC();          
+  endinterface: MACModule
+  
+  // Interface for Top MAC
+  interface Ifc_TopMAC;
+    method ActionValue #(Bit#(32)) mac_result (Bit#(16)a, Bit#(16)b, Bit#(32)c, Bool S1_or_S2);
+  endinterface: Ifc_TopMAC
+
  ///////////////////////////////// module definitions ////////////////////////////////////////
   //8 bit fulladder
   module mk8Fadder(Ifc_8Fadder);
@@ -196,4 +209,29 @@ package mods;
       //  let res_exp <- u1.f8adder_result(exponent_a,twoc_exp_b,1'b0);
     endmethod:fpmac_result
   endmodule:mkFpmac
+      //MAC Module
+   (*synthesize*)
+  module mkTopMAC(Ifc_TopMAC);
+      Ifc_IntMAC int_mac <- mkIntMAC;  // Integer MAC module for S1
+
+      method ActionValue #(Bit#(32)) mac_result (Bit#(16) a, Bit#(16) b, Bit#(32) c, Bool S1_or_S2);
+          if (S1_or_S2 == True) begin
+            // S1 operation: int8 * int8 + int32 -> int32
+              Bit#(8) a_8bit = a[7:0]; // Select lower 8 bits for int8
+              Bit#(8) b_8bit = b[7:0]; // Select lower 8 bits for int8
+              return int_mac.intmac_result(a_8bit, b_8bit, c);
+          end
+          else begin
+            // S2 operation: bf16 * bf16 + fp32 -> fp32
+              Bit#(32) a_fp32 = bf16_to_fp32(a[15:0]);  // Convert bf16 to fp32
+              Bit#(32) b_fp32 = bf16_to_fp32(b[15:0]);  // Convert bf16 to fp32
+
+            // Assuming fp32_mult and fp32_add are defined elsewhere
+              let mult_out = fp32_mult(a_fp32, b_fp32); // Multiply bf16 values as fp32
+              let add_out = fp32_add(mult_out, c);      // Add result to fp32 C
+
+              return add_out;  // Return the final fp32 result
+          end
+      endmethod
+  endmodule: mkTopMAC
 endpackage:mods
