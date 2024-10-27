@@ -167,75 +167,91 @@ package mods;
       let mantissa_mult_out <- u2.mul_result(zeroExtend(mantissa_a),zeroExtend(mantissa_b));
       Bit#(16) mantissa_prod = mantissa_mult_out[15:0];
       Bit#(23) mantissa_result = 23'b0;
+      Bit#(8) exp_result = 8'b0;
       //normalization and translation of mantissa.
-      if(mantissa_prod[fromInteger(15)] == 1'b1)begin
+      if(mantissa_prod[15] == 1'b1)begin
         mantissa_result[22:8] = mantissa_prod[14:0];
+        exp_result = exp_prod;
       end
-      else if(mantissa_prod[fromInteger(14)] == 1'b1)begin
-        mantissa_result[22:9] = mantissa_prod;
+      else if(mantissa_prod[14] == 1'b1)begin
+        mantissa_result[22:9] = mantissa_prod[13:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hFF,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(13)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[13] == 1'b1)begin
+        mantissa_result[22:10] = mantissa_prod[12:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hFE,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(12)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[12] == 1'b1)begin
+        mantissa_result[22:11] = mantissa_prod[11:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hFD,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(11)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[11] == 1'b1)begin
+        mantissa_result[22:12] = mantissa_prod[10:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hFC,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(10)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[10] == 1'b1)begin
+        mantissa_result[22:13] = mantissa_prod[9:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hFB,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(9)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[9] == 1'b1)begin
+        mantissa_result[22:14] = mantissa_prod[8:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hFA,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(8)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[8] == 1'b1)begin
+        mantissa_result[22:15] = mantissa_prod[7:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF9,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(7)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[7] == 1'b1)begin
+        mantissa_result[22:16] = mantissa_prod[6:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF8,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(6)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[6] == 1'b1)begin
+        mantissa_result[22:17] = mantissa_prod[5:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF7,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(5)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[5] == 1'b1)begin
+        mantissa_result[22:18] = mantissa_prod[4:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF6,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(4)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[4] == 1'b1)begin
+        mantissa_result[22:19] = mantissa_prod[3:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF5,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(3)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[3] == 1'b1)begin
+        mantissa_result[22:20] = mantissa_prod[2:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF4,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(2)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[2] == 1'b1)begin
+        mantissa_result[22:21] = mantissa_prod[1:0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF3,0);
+        exp_result = exp_dec[7:0];
       end
-      else if(mantissa_prod[fromInteger(1)] == 1'b1)begin
-        num = i;
-        exp_num = 15 - i;
+      else if(mantissa_prod[1] == 1'b1)begin
+        mantissa_result[22] = mantissa_prod[0];
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF2,0);
+        exp_result = exp_dec[7:0];
       end
       else begin
-        num = i;
-        exp_num = 15 - i;
+        mantissa_result = 23'b0;
+        let exp_dec <- u1.f8adder_result(exp_prod,8'hF1,0);
+        exp_result = exp_dec[7:0];
       end
-      Bit#(23) mantissa_final = 23'b0;
-      mantissa_final[22:22-num] = mantissa_prod[num:0];
       Bit#(32) add_out = 0;
       add_out[31] = sign_prod;
-      add_out[30:23] = exp_prod;
-      add_out[22:0] = mantissa_final;
+      add_out[30:23] = exp_result;
+      add_out[22:0] = mantissa_result;
       return add_out;
       // Final adjustment for mantissa and exponent to fit fp32
       //checking exponents.
