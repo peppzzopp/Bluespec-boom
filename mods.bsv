@@ -172,8 +172,8 @@ package mods;
       //sign calculation.
       Bit#(1) sign_prod = sign_a ^ sign_b;
       //exponent calculation.
-      let exp_pre_bias <- u1.f8adder(exponent_a,exponent_b,0);
-      let exp_add_bias <- u1.f8adder(exp_pre_bias,8'b10000001,0);
+      let exp_pre_bias <- u1.f8adder_result(exponent_a,exponent_b,0);
+      let exp_add_bias <- u1.f8adder_result(exp_pre_bias,8'b10000001,0);
       Bit#(8) exp_prod = exp_add_bias[7:0];
       //mantissa calculation.
       let mantissa_mult_out <- u2.intmac_result(mantissa_a,mantissa_b,32'b0);
@@ -189,11 +189,8 @@ package mods;
         mantissa_prod = zeroExtend(mantissa_prod) << 1;
       end
       // Final adjustment for mantissa and exponent to fit fp32
-      Bit#(32) result;
-      fp32_product[31] = sign_prod;         // Set sign bit
-      fp32_product[30:23] = exp_prod;       // Set exponent bits
-      fp32_product[22:0] = mantissa_norm_prod[22:0]; // Set mantissa bits    
-      Bit#(32) add_out <- u2.intmac_result(fp32_product, c, 0);
+      Bit#(32) result = {sign_prod, exp_prod, mantissa_norm_prod[22:0]};
+      let add_out <- u2.intmac_result(result, c, 0);
       return add_out[31:0];
       //checking exponents.
       //if(exponent_a > exponent_b)begin
@@ -212,8 +209,8 @@ package mods;
       //MAC Module
    (*synthesize*)
   module mkTopMAC(Ifc_TopMAC);
-      Ifc_IntMAC int_mac <- mkIntMAC;  // Integer MAC module for S1
-
+      Ifc_Intmac int_mac <- mkIntmac;  
+      Ifc_Fpmac fpmac <- mkFpmac;
       method ActionValue #(Bit#(32)) mac_result (Bit#(16) a, Bit#(16) b, Bit#(32) c, Bool S1_or_S2);
           if (S1_or_S2 == True) begin
             // S1 operation: int8 * int8 + int32 -> int32
@@ -221,7 +218,8 @@ package mods;
               Bit#(8) b_8bit = b[7:0]; // Select lower 8 bits for int8
               return int_mac.intmac_result(a_8bit, b_8bit, c);
           end
-         // need to right S2 
+          else begin
+            return fpmac.fpmac_result(a, b, c); 
           end
       endmethod
   endmodule: mkTopMAC
