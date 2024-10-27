@@ -141,9 +141,10 @@ package mods;
   endmodule:mkIntmac
 
   //Floating point mac module.
+  (*synthesize*)
   module mkFpmac(Ifc_Fpmac);
     Ifc_8Fadder u1 <- mk8Fadder;
-    Ifc_Intmac u2 <- mkIntmac;
+    Ifc_Mul u2 <- mkMul;
     method ActionValue #(Bit#(32)) fpmac_result (Bit#(16)a, Bit#(16)b, Bit#(32)c);
       //extraction of individual fields.
       Bit#(1) sign_a = a[15];
@@ -159,29 +160,84 @@ package mods;
       //sign calculation.
       Bit#(1) sign_prod = sign_a ^ sign_b;
       //exponent calculation.
-      let exp_pre_bias <- u1.f8adder(exponent_a,exponent_b,0);
-      let exp_add_bias <- u1.f8adder(exp_pre_bias,8'b10000001,0);
+      let exp_pre_bias <- u1.f8adder_result(exponent_a,exponent_b,1'b0);
+      let exp_add_bias <- u1.f8adder_result(exp_pre_bias[7:0],8'b01111111,0);
       Bit#(8) exp_prod = exp_add_bias[7:0];
       //mantissa calculation.
-      let mantissa_mult_out <- u2.intmac_result(mantissa_a,mantissa_b,32'b0);
+      let mantissa_mult_out <- u2.mul_result(zeroExtend(mantissa_a),zeroExtend(mantissa_b));
       Bit#(16) mantissa_prod = mantissa_mult_out[15:0];
+      Bit#(23) mantissa_result = 23'b0;
       //normalization and translation of mantissa.
-      Bit#(24) mantissa_norm_prod = 24'b0;
-      if(mantissa_prod[15] == 1'b1)begin
-        mantissa_prod = zeroExtend(mantissa_prod) << 1;
-        let temp_exp_prod <- u1.f8adder_result(exp_prod,8'b0,1);
-        exp_prod = temp_exp_prod[7:0];
+      if(mantissa_prod[fromInteger(15)] == 1'b1)begin
+        mantissa_result[22:8] = mantissa_prod[14:0];
+      end
+      else if(mantissa_prod[fromInteger(14)] == 1'b1)begin
+        mantissa_result[22:9] = mantissa_prod;
+      end
+      else if(mantissa_prod[fromInteger(13)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(12)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(11)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(10)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(9)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(8)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(7)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(6)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(5)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(4)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(3)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(2)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
+      end
+      else if(mantissa_prod[fromInteger(1)] == 1'b1)begin
+        num = i;
+        exp_num = 15 - i;
       end
       else begin
-        mantissa_prod = zeroExtend(mantissa_prod) << 1;
+        num = i;
+        exp_num = 15 - i;
       end
+      Bit#(23) mantissa_final = 23'b0;
+      mantissa_final[22:22-num] = mantissa_prod[num:0];
+      Bit#(32) add_out = 0;
+      add_out[31] = sign_prod;
+      add_out[30:23] = exp_prod;
+      add_out[22:0] = mantissa_final;
+      return add_out;
       // Final adjustment for mantissa and exponent to fit fp32
-      Bit#(32) result;
-      fp32_product[31] = sign_prod;         // Set sign bit
-      fp32_product[30:23] = exp_prod;       // Set exponent bits
-      fp32_product[22:0] = mantissa_norm_prod[22:0]; // Set mantissa bits    
-      Bit#(32) add_out <- u2.intmac_result(fp32_product, c, 0);
-      return add_out[31:0];
       //checking exponents.
       //if(exponent_a > exponent_b)begin
       //  Bit#(8) neg_exp_b = 0;
