@@ -259,46 +259,120 @@ package mods;
       Bit#(8) exp_c = c[30:23];
       Bit#(24) mantissa_c = 24'hFFFFFF;
       mantissa_c[22:0] = c[22:0];
+      mantissa_c[23] = 1'b1;
 
-      mantissa_result = {1'b1, mantissa_result};         
-      mantissa_c = {1'b1, mantissa_c}; 
+      Bit#(24) aligned_mantissa_mul_out = {1'b1, mul_out[22:0]};
+      Bit#(24) aligned_mantissa_c = mantissa_c;
       if (exp_result > exp_c) begin
-        mantissa_c = mantissa_c >> (exp_result - exp_c);  
-        exp_c = exp_result;                              
+         exp_diff = exp_result - exp_c;
+         aligned_mantissa_c = mantissa_c >> exp_diff; // Shift mantissa of c to align with mul_out
+         exp_result = exp_result; // Keep exp_result as the common exponent
       end else if (exp_c > exp_result) begin
-        mantissa_result = mantissa_result >> (exp_c - exp_result); 
-        exp_result = exp_c;                              
+         exp_diff = exp_c - exp_result;
+         aligned_mantissa_mul_out = aligned_mantissa_mul_out >> exp_diff; // Shift mantissa of mul_out
+         exp_result = exp_c; // Set exp_result to the higher exponent
+      end else begin
+         exp_diff = 8'd0;
       end
-      // Perform the addition of mantissas
-      Bit#(24) result_mantissa;
+      Bit#(23) normalized_mantissa = 23'b0;
       Bit#(1) result_sign;
+      result_sign = sign_prod ^ sign_c; // XOR to determine the final sign of the MAC result
 
       if (sign_prod == sign_c) begin
-          result_mantissa = mantissa_result + mantissa_c; // Same signs
-          result_sign = sign_prod;                        // Keep the same sign
-      end else if (mantissa_result > mantissa_b) begin
-          result_mantissa = mantissa_result - mantissa_c; // Different signs
-          result_sign = sign_prod;                        // Result sign is that of mul_out
+         let sum_res <- u1.f8adder_result(aligned_mantissa_mul_out[22:0], aligned_mantissa_c[22:0], 0);
+         mantissa_sum = {1'b0, sum_res[22:0]}; // No carry, so no additional bit required
       end else begin
-          result_mantissa = mantissa_c - mantissa_result; // Different signs
-          result_sign = sign_b;                        // Result sign is that of c
+         if (aligned_mantissa_mul_out > aligned_mantissa_c) begin
+            let sub_res <- u1.f8adder_result(aligned_mantissa_mul_out[22:0], ~aligned_mantissa_c[22:0], 1);
+            mantissa_sum = {1'b0, sub_res[22:0]};
+         end else begin
+            let sub_res <- u1.f8adder_result(aligned_mantissa_c[22:0], ~aligned_mantissa_mul_out[22:0], 1);
+            mantissa_sum = {1'b0, sub_res[22:0]};
+            result_sign = sign_c;
+         end
       end
-    
-      Bit#(8) result_exponent = exp_result; // Use the aligned exponent
-      if (result_mantissa[23]) begin
-        // If the result mantissa has a leading 1, normalize
-          result_mantissa = result_mantissa >> 1;
-          result_exponent = result_exponent + 1;  // Increase exponent
-      end else if (result_mantissa[22:0] == 0) begin
-        // If result is zero, return zero
-          return 32'h0; // Return zero
+      if (mantissa_sum[24] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[23:1];
+          exp_result = exp_result + 1; // Increment exponent due to overflow
+      end else if (mantissa_sum[23] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[22:0];
+    // exp_result remains the same
+      end else if (mantissa_sum[22] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[21:0];
+          exp_result = exp_result - 1;
+      end else if (mantissa_sum[21] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[20:0];
+          exp_result = exp_result - 2;
+      end else if (mantissa_sum[20] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[19:0];
+          exp_result = exp_result - 3;
+      end else if (mantissa_sum[19] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[18:0];
+          exp_result = exp_result - 4;
+      end else if (mantissa_sum[18] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[17:0];
+          exp_result = exp_result - 5;
+      end else if (mantissa_sum[17] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[16:0];
+          exp_result = exp_result - 6;
+      end else if (mantissa_sum[16] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[15:0];
+          exp_result = exp_result - 7;
+      end else if (mantissa_sum[15] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[14:0];
+          exp_result = exp_result - 8;
+      end else if (mantissa_sum[14] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[13:0];
+          exp_result = exp_result - 9;
+      end else if (mantissa_sum[13] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[12:0];
+          exp_result = exp_result - 10;
+      end else if (mantissa_sum[12] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[11:0];
+          exp_result = exp_result - 11;
+      end else if (mantissa_sum[11] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[10:0];
+          exp_result = exp_result - 12;
+      end else if (mantissa_sum[10] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[9:0];
+          exp_result = exp_result - 13;
+      end else if (mantissa_sum[9] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[8:0];
+          exp_result = exp_result - 14;
+      end else if (mantissa_sum[8] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[7:0];
+          exp_result = exp_result - 15;
+      end else if (mantissa_sum[7] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[6:0];
+          exp_result = exp_result - 16;
+      end else if (mantissa_sum[6] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[5:0];
+          exp_result = exp_result - 17;
+      end else if (mantissa_sum[5] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[4:0];
+          exp_result = exp_result - 18;
+      end else if (mantissa_sum[4] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[3:0];
+          exp_result = exp_result - 19;
+      end else if (mantissa_sum[3] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[2:0];
+          exp_result = exp_result - 20;
+      end else if (mantissa_sum[2] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[1:0];
+          exp_result = exp_result - 21;
+      end else if (mantissa_sum[1] == 1'b1) begin
+          normalized_mantissa = mantissa_sum[0];
+          exp_result = exp_result - 22;
+      end else begin
+          normalized_mantissa = 23'b0;
+           exp_result = 8'b0; // Underflow case; set exponent and mantissa to zero
       end
-      Bit#(32) result;
-      result[31] = result_sign;          
-      result[30:23] = result_exponent;   
-      result[22:0] = result_mantissa[22:0]; 
+      Bit#(32) mac_out = 0;
+      mac_out[31] = result_sign;
+      mac_out[30:23] = exp_result;
+      mac_out[22:0] = normalized_mantissa;
+      return mac_out;
 
-      return result;
     endmethod:fpmac_result
   endmodule:mkFpmac
 endpackage:mods
