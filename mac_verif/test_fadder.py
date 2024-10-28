@@ -21,7 +21,3 @@ async def test_fadder(dut):
     dut._log.info('output should be 3334471680')
     await RisingEdge(dut.CLK)
     dut._log.info( f'output{int(dut.fpmac_result.value)}')
-
-    #11000110110000000000000000000000
-    #11000101110000000000000000000000
-    #11000101010000000000000000000000

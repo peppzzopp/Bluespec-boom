@@ -161,7 +161,7 @@ package mods;
       Bit#(1) sign_prod = sign_a ^ sign_b;
       //exponent calculation.
       let exp_pre_bias <- u1.f8adder_result(exponent_a,exponent_b,1'b0);
-      let exp_add_bias <- u1.f8adder_result(exp_pre_bias[7:0],8'b01111111,0);
+      let exp_add_bias <- u1.f8adder_result(exp_pre_bias[7:0],8'b10000001,0);
       Bit#(8) exp_prod = exp_add_bias[7:0];
       //mantissa calculation.
       let mantissa_mult_out <- u2.mul_result(zeroExtend(mantissa_a),zeroExtend(mantissa_b));
