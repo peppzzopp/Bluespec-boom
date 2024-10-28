@@ -254,13 +254,51 @@ package mods;
       mul_out[30:23] = exp_result;
       mul_out[22:0] = mantissa_result;
 
-      //addition.
       //seperation.
       Bit#(1) sign_c = c[31];
       Bit#(8) exp_c = c[30:23];
       Bit#(24) mantissa_c = 24'hFFFFFF;
       mantissa_c[22:0] = c[22:0];
-      return mul_out;
+
+      mantissa_result = {1'b1, mantissa_result};         
+      mantissa_c = {1'b1, mantissa_c}; 
+      if (exp_result > exp_c) begin
+        mantissa_c = mantissa_c >> (exp_result - exp_c);  
+        exp_c = exp_result;                              
+      end else if (exp_c > exp_result) begin
+        mantissa_result = mantissa_result >> (exp_c - exp_result); 
+        exp_result = exp_c;                              
+      end
+      // Perform the addition of mantissas
+      Bit#(24) result_mantissa;
+      Bit#(1) result_sign;
+
+      if (sign_prod == sign_c) begin
+          result_mantissa = mantissa_result + mantissa_c; // Same signs
+          result_sign = sign_prod;                        // Keep the same sign
+      end else if (mantissa_result > mantissa_b) begin
+          result_mantissa = mantissa_result - mantissa_c; // Different signs
+          result_sign = sign_prod;                        // Result sign is that of mul_out
+      end else begin
+          result_mantissa = mantissa_c - mantissa_result; // Different signs
+          result_sign = sign_b;                        // Result sign is that of c
+      end
+    
+      Bit#(8) result_exponent = exp_result; // Use the aligned exponent
+      if (result_mantissa[23]) begin
+        // If the result mantissa has a leading 1, normalize
+          result_mantissa = result_mantissa >> 1;
+          result_exponent = result_exponent + 1;  // Increase exponent
+      end else if (result_mantissa[22:0] == 0) begin
+        // If result is zero, return zero
+          return 32'h0; // Return zero
+      end
+      Bit#(32) result;
+      result[31] = result_sign;          
+      result[30:23] = result_exponent;   
+      result[22:0] = result_mantissa[22:0]; 
+
+      return result;
     endmethod:fpmac_result
   endmodule:mkFpmac
 endpackage:mods
