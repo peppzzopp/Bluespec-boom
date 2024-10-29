@@ -15,9 +15,9 @@ async def test_fadder(dut):
     await RisingEdge(dut.CLK)
     dut.RST_N.value = 1
     dut.EN_fpmac_result.value = 1
-    dut.fpmac_result_a.value = 17280 
-    dut.fpmac_result_b.value = 49856
-    dut.fpmac_result_c.value = 0
-    dut._log.info('output should be 3334471680')
+    dut.fpmac_result_a.value = 20433 
+    dut.fpmac_result_b.value = 21641
+    dut.fpmac_result_c.value = 1413245568
+    dut._log.info('output should be 1692401664')
     await RisingEdge(dut.CLK)
     dut._log.info( f'output{int(dut.fpmac_result.value)}')
