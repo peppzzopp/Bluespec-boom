@@ -418,37 +418,13 @@ package mods;
       S1_or_S2_reg <= sel;
     endmethod
     method Bit#(32) MAC();
-      Bit#(32) result;
-      if (S1_or_S2_reg) begin
-        result = intmac_result(A_reg, B_reg, C_reg);
-      end else begin
-        result = fpmac_result(A_reg, B_reg, C_reg);
-      end
-      return result;
+      return C_reg;
     endmethod
-    // Integer MAC operation for int8
     method Bit#(32) intmac_result(Bit#(8) a, Bit#(8) b, Bit#(32) c);
-      Bit#(32) result = (zeroExtend(a) * zeroExtend(b)) + c;
-      return result;
+      return c;
     endmethod
-    // Floating point MAC operation for bfloat16
     method Bit#(32) fpmac_result(Bit#(16) a, Bit#(16) b, Bit#(32) c);
-      Bit#(8) exponent_a = a[14:7];
-      Bit#(8) exponent_b = b[14:7];
-      Bit#(7) mantissa_a = a[6:0];
-      Bit#(7) mantissa_b = b[6:0];
-
-      Bit#(8) exp_result = exponent_a + exponent_b; // Simple exponent addition for example
-      Bit#(14) mantissa_result = zeroExtend(mantissa_a) * zeroExtend(mantissa_b); // Mantissa multiplication
-      // Handle normalization (simplified logic)
-      if (mantissa_result[13] == 1'b1) begin
-        exp_result = exp_result + 1;
-        mantissa_result = mantissa_result >> 1; // Right shift for normalization
-      end
-      // Combine the result
-      Bit#(32) result = {1'b0, exp_result, mantissa_result[13:6]}; // Assuming a 32-bit result
-      result = result + c; // Add the accumulator (c)
-      return result;
+      return c; 
     endmethod
-  endmodule:mkMAC
+  endmodule: mkMAC
 endpackage:mods
