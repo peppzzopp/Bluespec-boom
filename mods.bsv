@@ -27,6 +27,15 @@ package mods;
     method ActionValue #(Bit#(32)) fpmac_result (Bit#(16)a, Bit#(16)b, Bit#(32)c);
   endinterface:Ifc_Fpmac
 
+  // Interface for the MAC module, to be used in the systolic array
+  interface Ifc_MAC;
+    method Action A(Bit#(8) value);        // For int8 inputs, 8-bit data type
+    method Action B(Bit#(8) value);        // For int8 inputs, 8-bit data type
+    method Action C(Bit#(32) value);       // For int32 or fp32 accumulations
+    method Action S1_or_S2(Bool sel);      // True for int8, False for bf16
+    method Bit#(32) MAC();                 // The final result of the MAC operation (int32 or fp32)
+  endinterface:Ifc_MAC
+
  ///////////////////////////////// module definitions ////////////////////////////////////////
   //8 bit fulladder
   module mk8Fadder(Ifc_8Fadder);
@@ -389,4 +398,57 @@ package mods;
       return {sign_c,expp,mantissa_sum[22:0]};
     endmethod:fpmac_result
   endmodule:mkFpmac
+
+  module mkMAC(Ifc_MAC);
+    // Internal registers to hold A, B, and C values
+    Reg#(Bit#(8)) A_reg <- mkReg(0);
+    Reg#(Bit#(8)) B_reg <- mkReg(0);
+    Reg#(Bit#(32)) C_reg <- mkReg(0);
+    Reg#(Bool) S1_or_S2_reg <- mkReg(False); // Register to hold the S1_or_S2 selection
+    method Action A(Bit#(8) value);
+      A_reg <= value;
+    endmethod
+    method Action B(Bit#(8) value);
+      B_reg <= value;
+    endmethod
+    method Action C(Bit#(32) value);
+      C_reg <= value;
+    endmethod
+    method Action S1_or_S2(Bool sel);
+      S1_or_S2_reg <= sel;
+    endmethod
+    method Bit#(32) MAC();
+      Bit#(32) result;
+      if (S1_or_S2_reg) begin
+        result = intmac_result(A_reg, B_reg, C_reg);
+      end else begin
+        result = fpmac_result(A_reg, B_reg, C_reg);
+      end
+      return result;
+    endmethod
+    // Integer MAC operation for int8
+    method Bit#(32) intmac_result(Bit#(8) a, Bit#(8) b, Bit#(32) c);
+      Bit#(32) result = (zeroExtend(a) * zeroExtend(b)) + c;
+      return result;
+    endmethod
+    // Floating point MAC operation for bfloat16
+    method Bit#(32) fpmac_result(Bit#(16) a, Bit#(16) b, Bit#(32) c);
+      Bit#(8) exponent_a = a[14:7];
+      Bit#(8) exponent_b = b[14:7];
+      Bit#(7) mantissa_a = a[6:0];
+      Bit#(7) mantissa_b = b[6:0];
+
+      Bit#(8) exp_result = exponent_a + exponent_b; // Simple exponent addition for example
+      Bit#(14) mantissa_result = zeroExtend(mantissa_a) * zeroExtend(mantissa_b); // Mantissa multiplication
+      // Handle normalization (simplified logic)
+      if (mantissa_result[13] == 1'b1) begin
+        exp_result = exp_result + 1;
+        mantissa_result = mantissa_result >> 1; // Right shift for normalization
+      end
+      // Combine the result
+      Bit#(32) result = {1'b0, exp_result, mantissa_result[13:6]}; // Assuming a 32-bit result
+      result = result + c; // Add the accumulator (c)
+      return result;
+    endmethod
+  endmodule:mkMAC
 endpackage:mods
